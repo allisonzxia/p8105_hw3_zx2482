@@ -91,16 +91,66 @@ brfss_NY_responses =
 ```
 
 ```{r}
-ggplot(brfss_NY_responses, aes(x= data_value))+
-  geom_histogram(binwidth=3, fill="skyblue", color="black")+
+ggplot(brfss_NY_responses, aes(x= response, y = data_value))+
+  geom_boxplot(fill="skyblue", color="black")+
+  labs(title="Historgram showing distribution of data value ", x="Category", y="Count") 
   facet_wrap(~year)
 ```
+
 ## Problem 3 
 
 Load, tidy, merge, and otherwise organize the data sets
 ```{r Load NHANES datasets}
 accelerometer = read_csv("./accelerometer.csv")
-demongraphis = read_csv("./demongraphic.csv")
-
+demographic = read_csv("./demographic.csv",skip =4)
 ```
+```{r Clean demographic}
+demographic_tidy =
+  demographic |> 
+  janitor::clean_names() |> 
+  na.omit() |> 
+  filter(age >= 21) |> 
+  mutate(sex = factor(sex),
+         education = factor(education))
+```
+
+```{r Clean and tidy accelerometer}
+accelerometer_tidy=
+  accelerometer |> 
+  janitor::clean_names() |> 
+  pivot_longer(
+    min1:min1440, 
+    names_to = "min",
+    names_prefix = "min",
+    values_to = "mims"
+  )
+```
+
+```{r Merge two datasest}
+nhanes = demographic_tidy |> 
+  left_join(accelerometer_tidy,by = join_by(seqn))
+```
+
+* Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items
+```{r}
+nhanes_sex_education=
+  nhanes |>
+  group_by(sex, education) |>
+  summarize(count = n())|>
+  mutate(sex = recode(sex, "1" = "Male", "2" = "Female"),
+         education = recode(education, "1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school"))
+
+nhanes_sex_education |> 
+  knitr::kable(digits = 2) 
+```
+```{r Visualization}
+ggplot(nhanes_sex_education, aes(x=education, y=count)) +
+  geom_bar(stat="identity", fill="skyblue", color="black") +
+  labs(title="Barplot using ggplot2", x="Category", y="Count") +
+  facet_wrap(~sex)+
+  theme_minimal()
+```
+Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r nhanes_sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`)  slightly outnumber males (`r nhanes_sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r nhanes_sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`r nhanes_sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
+
+
 
