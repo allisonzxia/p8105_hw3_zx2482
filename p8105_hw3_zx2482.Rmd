@@ -77,7 +77,7 @@ brfss_excellent =
 ```{r Plot brfss_excellent}
 ggplot(brfss_excellent, aes(x=year, y=mean_data_value, color=state)) +
   geom_line() +
-  labs(title="Spaghetti Plot",
+  labs(title="Data average value over years within a state",
        x="Year",
        y="Mean Data Value") +
   theme_minimal()
@@ -88,5 +88,19 @@ ggplot(brfss_excellent, aes(x=year, y=mean_data_value, color=state)) +
 brfss_NY_responses = 
   brfss_overall_health |> 
   filter(state == "NY" & (year =="2006" | year == "2010"))
+```
+
+```{r}
+ggplot(brfss_NY_responses, aes(x= data_value))+
+  geom_histogram(binwidth=3, fill="skyblue", color="black")+
+  facet_wrap(~year)
+```
+## Problem 3 
+
+Load, tidy, merge, and otherwise organize the data sets
+```{r Load NHANES datasets}
+accelerometer = read_csv("./accelerometer.csv")
+demongraphis = read_csv("./demongraphic.csv")
+
 ```
 
