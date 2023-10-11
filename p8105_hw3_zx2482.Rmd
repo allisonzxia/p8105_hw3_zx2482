@@ -66,11 +66,27 @@ states_2010 <-
 In 2002, these following states were observed at 7 or more locations: `r states_2002`. In 2010, these following states were observed at 7 or more locations: `r states_2010`
 
 * Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
-```{r excellent}
+```{r Create brfss_excellent}
 brfss_excellent = 
   brfss_overall_health |> 
   filter(response == "Excellent") |> 
-  group_by(state) |> 
+  group_by(state, year) |> 
   summarize (mean_data_value = mean(data_value, na.rm=TRUE))
+```
+
+```{r Plot brfss_excellent}
+ggplot(brfss_excellent, aes(x=year, y=mean_data_value, color=state)) +
+  geom_line() +
+  labs(title="Spaghetti Plot",
+       x="Year",
+       y="Mean Data Value") +
+  theme_minimal()
+```
+
+* Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
+```{r}
+brfss_NY_responses = 
+  brfss_overall_health |> 
+  filter(state == "NY" & (year =="2006" | year == "2010"))
 ```
 
