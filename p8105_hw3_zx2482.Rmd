@@ -169,3 +169,25 @@ ggplot(nhanes_sex_education, aes(x=education, y=count)) +
 ```
 
 Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r nhanes_sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`) slightly outnumber males (`r nhanes_sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r nhanes_sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`r nhanes_sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
+
+#### Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
+
+```{r Data Wrangling}
+nhanes_total_activities = 
+  nhanes |> 
+  group_by(seqn) |> 
+  mutate(total_activity = sum(mims)) |> 
+  select(seqn, age, education, sex, total_activity) |> 
+  distinct()
+```
+
+```{r Plot}
+my_labels<- c("1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school")
+
+ggplot(nhanes_total_activities, aes(x = age, y = total_activity, color = sex))+
+  geom_point()+
+  facet_wrap(~education,labeller = labeller(.default = my_labels))+
+  geom_smooth(method="lm", se=FALSE)+
+  labs(title="Scatterplot for correlation between age and total activities", x="Age", y="Total Activities", color = "Sex (1 = Male, 2 = Female)")
+```
+
