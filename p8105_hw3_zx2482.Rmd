@@ -138,7 +138,8 @@ accelerometer_tidy=
     names_to = "min",
     names_prefix = "min",
     values_to = "mims"
-  )
+  ) |> 
+  mutate(min = as.numeric(min))
 ```
 
 ```{r Merge two datasest}
@@ -158,7 +159,7 @@ sex_education =
 sex_education |> 
   knitr::kable(digits = 2) 
 ```
-Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r nhanes_sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`) slightly outnumber males (`r nhanes_sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r nhanes_sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`r nhanes_sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
+* Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`) slightly outnumber males `r sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
 
 ```{r Visualization}
 my_labels<- c("1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school")
@@ -168,7 +169,8 @@ ggplot(demographic_tidy, aes(x = sex, y = age)) +
   facet_wrap(~education,labeller = labeller(.default = my_labels))+
   labs(title="Boxplot of age distribution for women and men in each education category", x=" Sex (1 = Male, 2 = Female) ", y="Age")
 ```
-This boxplot shows age distribution for men and women in each eduation category.The median age for participants with an education `Less Than High School` is `r demographic_tidy |> filter(sex == 1 & education == 1) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 1) |> summarize(median(age))` for women. Both distributions in `Less Than High School` category are right-skewed. The median age for participants with an education `High school equivalent` is `r demographic_tidy |> filter(sex == 1 & education == 2) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 2) |> summarize(median(age))` for women. Both distributions in `High school equivalent` category are right-skewed.The median age for participants with an education `More than high school` is `r demographic_tidy |> filter(sex == 1 & education == 3) |> summarize(median(age)) for men`, and `r demographic_tidy |> filter(sex == 2 & education == 3) |> summarize(median(age))` for women. Both distributions in `More than high school` category are left-skewed.
+
+This boxplot shows age distribution for men and women in each eduation category.The median age for participants with an education `Less Than High School` is `r demographic_tidy |> filter(sex == 1 & education == 1) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 1) |> summarize(median(age))` for women. Both distributions in `Less Than High School` category are right-skewed. The median age for participants with an education `High school equivalent` is `r demographic_tidy |> filter(sex == 1 & education == 2) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 2) |> summarize(median(age))` for women. Both distributions in `High school equivalent` category are right-skewed.The median age for participants with an education `More than high school` is `r demographic_tidy |> filter(sex == 1 & education == 3) |> summarize(median(age)) `for men, and `r demographic_tidy |> filter(sex == 2 & education == 3) |> summarize(median(age))` for women. Both distributions in `More than high school` category are left-skewed.
 
 #### Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
 
@@ -194,3 +196,18 @@ ggplot(nhanes_total_activities, aes(x = age, y = total_activity, color = sex))+
 
 #### Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
 
+```{r}
+nhanes |> 
+  group_by(min, education,sex) |> 
+  arrange(min) |> 
+  summarize(mims_median = median(mims))|>
+  ggplot(aes(x = min, y = mims_median, color = sex)) +
+  geom_line()+
+  geom_smooth(method = lm, formula = y ~ x^2, se = FALSE) +
+  labs(title = "Linegraph for Activity Over the Course of the Day",
+       x = "Time in Minute",
+       y = "MIMS Value (Activity)",
+       color = "Sex (1 = Male, 2 = Female)") +
+  facet_wrap(~education,labeller = labeller(.default = my_labels))
+```
+The line graph demonstrates the pattern in the activity levels over the course of the day of all participants. The activity initially increases till the noon and subsequently decreases. For participants in the 'less than high school' category, males exhibit a steeper slope in activity level over the course of the day compared to females. Conversely, in the other two categories, females display a more pronounced increase in activity level over the course of the day, as indicated by steeper slopes.
