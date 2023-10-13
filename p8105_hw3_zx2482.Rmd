@@ -149,26 +149,26 @@ nhanes = demographic_tidy |>
 #### Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items
 
 ```{r}
-nhanes_sex_education=
-  nhanes |>
+sex_education = 
+  demographic_tidy |> 
   group_by(sex, education) |>
   summarize(count = n())|>
   mutate(sex = recode(sex, "1" = "Male", "2" = "Female"),
          education = recode(education, "1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school"))
-
-nhanes_sex_education |> 
+sex_education |> 
   knitr::kable(digits = 2) 
 ```
+Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r nhanes_sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`) slightly outnumber males (`r nhanes_sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r nhanes_sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`r nhanes_sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
 
 ```{r Visualization}
-ggplot(nhanes_sex_education, aes(x=education, y=count)) +
-  geom_bar(stat="identity",fill="skyblue", color="black") +
-  labs(title="Barplot using ggplot2", x="Category", y="Count") +
-  facet_wrap(~sex)+
-  theme_minimal()
-```
+my_labels<- c("1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school")
 
-Both males and females have the highest count in the "More than high school" education level. For males, the number of participants increases with each increase in education level. For females, there are more participants with "Less than High School" education compared to those with a "High school equivalent". In the "More than high school" category, females (`r nhanes_sex_education |> filter(sex == "Female" & education == "More than high school") |>pull(count)`) slightly outnumber males (`r nhanes_sex_education |> filter(sex == "Male" & education == "More than high school") |>pull(count)`). In contrast, males (`r nhanes_sex_education |> filter(sex == "Male" & education == "High school equivalent") |>pull(count)`) have more participants than females (`r nhanes_sex_education |> filter(sex == "Female" & education == "High school equivalent") |>pull(count)`) in the "High school equivalent" category.
+ggplot(demographic_tidy, aes(x = sex, y = age)) +
+  geom_boxplot(fill="skyblue", color="black") +
+  facet_wrap(~education,labeller = labeller(.default = my_labels))+
+  labs(title="Boxplot of age distribution for women and men in each education category", x=" Sex (1 = Male, 2 = Female) ", y="Age")
+```
+This boxplot shows age distribution for men and women in each eduation category.The median age for participants with an education `Less Than High School` is `r demographic_tidy |> filter(sex == 1 & education == 1) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 1) |> summarize(median(age))` for women. Both distributions in `Less Than High School` category are right-skewed. The median age for participants with an education `High school equivalent` is `r demographic_tidy |> filter(sex == 1 & education == 2) |> summarize(median(age))` for men, and `r demographic_tidy |> filter(sex == 2 & education == 2) |> summarize(median(age))` for women. Both distributions in `High school equivalent` category are right-skewed.The median age for participants with an education `More than high school` is `r demographic_tidy |> filter(sex == 1 & education == 3) |> summarize(median(age)) for men`, and `r demographic_tidy |> filter(sex == 2 & education == 3) |> summarize(median(age))` for women. Both distributions in `More than high school` category are left-skewed.
 
 #### Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
 
@@ -182,12 +182,15 @@ nhanes_total_activities =
 ```
 
 ```{r Plot}
-my_labels<- c("1" = "Less than High School", "2" = "High school equivalent", "3"="More than high school")
-
 ggplot(nhanes_total_activities, aes(x = age, y = total_activity, color = sex))+
   geom_point()+
   facet_wrap(~education,labeller = labeller(.default = my_labels))+
   geom_smooth(method="lm", se=FALSE)+
   labs(title="Scatterplot for correlation between age and total activities", x="Age", y="Total Activities", color = "Sex (1 = Male, 2 = Female)")
 ```
+* This scatterplot shows the relationship between total activities and age, bifurcated by gender, and further categorized into three tabs based on educational attainment: 'Less than High School', 'High School Equivalent', and 'More than High School'. 
+* A discernible trend across all categories and genders indicates a negative correlation between total activities and age. Participants with an education 'Less than High School' start with highest activities when young but shows the steepest decline in total activities as they age when compared to  other education categories. Participants with an education `Equivalent to High School` show the second steepest decline and those with an education `More than High School` show the most gradual decline in activities with age. 
+* The slope of the decline in total activities with age is similar for both males and females.In the 'High School Equivalent' and 'More than High School' categories, females demonstrate higher total activities across all ages compared to their male counterparts. In the 'Less than High School' category, total activities for males and females are relatively the same across the age spectrum.
+
+#### Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
 
