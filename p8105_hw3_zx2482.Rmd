@@ -104,8 +104,8 @@ brfss_NY_responses =
 ```
 
 ```{r}
-ggplot(brfss_NY_responses, aes(x= response, y = data_value))+
-  geom_boxplot(fill="skyblue", color="black")+
+ggplot(brfss_NY_responses, aes( x = location, y = data_value, color = response))+
+  geom_boxplot()+
   labs(title="Boxplot showing distribution of data value for responses", x="Responses", y="Data Value") +
   facet_wrap(~year)
 ```
@@ -202,7 +202,7 @@ nhanes |>
   arrange(min) |> 
   summarize(mims_median = median(mims))|>
   ggplot(aes(x = min, y = mims_median, color = sex)) +
-  geom_line()+
+  geom_point(alpha = 0.5)+
   geom_smooth(method = lm, formula = y ~ x^2, se = FALSE) +
   labs(title = "Linegraph for Activity Over the Course of the Day",
        x = "Time in Minute",
